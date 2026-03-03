@@ -8,7 +8,7 @@ GinWhiskyExperten is a REST API designed to help enthusiasts find bottles that m
 3. **Personalization (POST):** Users can rate bottles and save them to their personal "library" (wishlist).
 4. **Smart Match (Logic):** Based on a specific bottle, the API suggests similar spirits by calculating the distance between flavor intensities.
 
-===================================================================================================  
+=============================================================================================
 
 <img width="6477" height="3525" alt="erdplus(6)" src="https://github.com/user-attachments/assets/07f358e8-f904-473a-ba1f-eeb319285d77" />
 
