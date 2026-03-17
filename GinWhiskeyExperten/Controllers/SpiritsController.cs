@@ -1,0 +1,103 @@
+﻿using GinWhiskeyExperten.DTOs;
+using GinWhiskeyExperten.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+
+namespace GinWhiskeyExperten.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")] // Becomes "api/spirits"
+    [EnableRateLimiting("FixedWindowPolicy")] // Apply rate limiting to all endpoints in this controller
+    public class SpiritsController : ControllerBase
+    {
+        private readonly ISpiritService _spiritService;
+
+        public SpiritsController(ISpiritService spiritService)
+        {
+            _spiritService = spiritService;
+        }
+
+        // GET: api/spirits?page=1&pageSize=10
+        [HttpGet]
+        public async Task<ActionResult<PagedResponse<SpiritReadDto>>> GetSpirits(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? type = null) //Optional type parameter
+        {
+            // Validation of query parameters with default values
+            if (page <= 0) page = 1;
+            if (pageSize <= 0 || pageSize > 50) pageSize = 10;
+
+            var response = await _spiritService.GetSpiritsAsync(page, pageSize, type);
+            return Ok(response);
+        }
+
+        // GET: api/spirits/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<SpiritReadDto>> GetSpirit(int id, [FromServices] SystembolagetIntegrationService systemService)
+        {
+            var spirit = await _spiritService.GetSpiritByIdAsync(id);
+
+            if (spirit == null)
+            {
+                return NotFound(new { Message = $"Couldnt find spirit with matching id {id}" });
+            }
+
+            var stockStatus = await systemService.GetStockStatusAsync("12345"); // Replace "12345" with the actual article number associated with the spirit
+
+            return Ok(new
+            {
+                Data = spirit,
+                StoreInformation = stockStatus
+            });
+        }
+
+        [HttpGet("{id}/cocktails")]
+        public async Task<ActionResult<List<CocktailDto>>> GetCocktailsForSpirit(int id, [FromServices] CocktailIntegrationService cocktailService)
+        {
+            var spirit = await _spiritService.GetSpiritByIdAsync(id); // Fetch the spirit from the database
+            if (spirit == null) return NotFound("Spirit not found.");
+
+            var suggestions = await cocktailService.GetSmartCocktailSuggestionsAsync(spirit.Name, spirit.Type); // Get cocktail suggestions based on the spirit's name and type
+
+            return Ok(suggestions);
+        }
+
+        // POST: api/spirits
+        [HttpPost]
+        public async Task<ActionResult<SpiritReadDto>> CreateSpirit(SpiritCreateDto createDto)
+        {
+            var createdSpirit = await _spiritService.CreateSpiritAsync(createDto); // Create the spirit and get the created entity with its new ID
+            return CreatedAtAction(nameof(GetSpirit), new { id = createdSpirit.Id }, createdSpirit); // Return 201 Created with the location of the new resource and the created entity in the response body
+        }
+
+        // PUT: api/spirits/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateSpirit(int id, SpiritUpdateDto updateDto)
+        {
+            var success = await _spiritService.UpdateSpiritAsync(id, updateDto);
+
+            if (!success)
+            {
+                return NotFound(new { Message = $"Update failed. Spirit with ID {id} not found." });
+            }
+
+            return NoContent();
+        }
+
+        // DELETE: api/spirits/{id}
+        // REST Standard: Use 204 No Content on success
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteSpirit(int id)
+        {
+            var success = await _spiritService.DeleteSpiritAsync(id);
+
+            if (!success)
+            {
+                return NotFound(new { Message = $"Delete failed. Spirit with ID {id} not found." });
+            }
+
+            return NoContent();
+        }
+    }
+}

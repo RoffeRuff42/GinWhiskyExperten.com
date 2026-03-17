@@ -1,0 +1,6 @@
+@GinWhiskeyExperten_HostAddress = http://localhost:5138
+
+GET {{GinWhiskeyExperten_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

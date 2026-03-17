@@ -1,0 +1,15 @@
+## Visual Studio ##
+.vs/
+[Bb]in/
+[Oo]bj/
+*.user
+*.userosscache
+*.sln.docstates
+
+## User Secrets (Säkerhet!) ##
+secrets.json
+appsettings.Development.json
+
+## SQL Server ##
+*.mdf
+*.ldf
