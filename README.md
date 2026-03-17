@@ -39,3 +39,36 @@ Main resource for browsing and managing the bottle collection.
 | :--- | :--- | :--- | :--- |
 | POST | /api/spirits/{id}/reviews | Add a rating/comment to a bottle | Public/User |
 | GET | /api/spirits/{id}/recommendations | Get top 3 similar bottles based on flavor | Public |
+
+========================================================================================================================================================
+
+To build and run this API locally, follow these steps:
+1. git clone https://github.com/RoffeRuff42/GinWhiskyExperten.com.git
+2. dotnet ef database update
+3. dotnet run
+
+This project uses User Secrets to manage sensitive information. You need to configure the following secrets locally:
+Right-click the project in Visual Studio and select Manage User Secrets.
+Add the following JSON: 
+<details>
+  {
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=GinWhiskeyDb;Trusted_Connection=True;MultipleActiveResultSets=true"
+  },
+  "CocktailApiKey": "1"
+}
+</details>
+
+Once running, navigate to https://localhost:[PORT]/swagger to explore the endpoints.
+
+========================================================================================================================================================
+
+## Performance Measurement
+Measurement performed using Firefox Developer Tools (Network tab) on the `GET /api/spirits` endpoint.
+
+| Scenario | Response Time | Description |
+| :--- | :--- | :--- |
+| **Cache Miss** | **78 ms** | Initial request. Data fetched from SQL Server. |
+| **Cache Hit** | **6 ms** | Subsequent request. Data served instantly from IMemoryCache. |
+
+**Result:** The cached response is approximately 13x faster than the initial database query.
