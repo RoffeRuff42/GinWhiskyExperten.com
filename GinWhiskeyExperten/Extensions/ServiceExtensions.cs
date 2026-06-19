@@ -13,7 +13,11 @@ namespace GinWhiskeyExperten.Extensions
             services.AddCors(options =>
             {
                 options.AddPolicy("CorsPolicy", builder =>
-                    builder.WithOrigins("http://localhost:3000", "https://localhost:5173") //Specify the allowed client origins e.g future frontend
+                    builder.WithOrigins(
+                            "http://localhost:3000",
+                            "http://localhost:5173", // Vite dev server default (plain HTTP)
+                            "https://localhost:5173"
+                        )
                            .AllowAnyMethod()
                            .AllowAnyHeader());
 
