@@ -103,5 +103,18 @@ namespace GinWhiskeyExperten.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<bool> AddVoteAsync(int spiritId, int stars)
+        {
+            var spiritExists = await _context.Spirits.AnyAsync(s => s.Id == spiritId);
+            if (!spiritExists) return false;
+
+            await _context.SpiritVotes.AddAsync(new SpiritVote { SpiritId = spiritId, Stars = stars });
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<List<Spirit>> GetAllWithVotesAsync() =>
+            await _context.Spirits.Include(s => s.Brand).Include(s => s.SpiritVotes).ToListAsync();
     }
 }

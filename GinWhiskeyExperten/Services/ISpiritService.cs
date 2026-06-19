@@ -13,5 +13,8 @@ namespace GinWhiskeyExperten.Services
         Task<List<SpiritReadDto>> GetRecommendationsAsync(int spiritId, int count = 3);
         Task<bool> AssignFlavorAsync(int spiritId, int flavorId, int intensity);
         Task<bool> RemoveFlavorAsync(int spiritId, int flavorId);
+
+        Task<bool> CastVoteAsync(int spiritId, int stars);
+        Task<List<SpiritRankingDto>> GetTopRatedAsync(int count = 50);
     }
 }

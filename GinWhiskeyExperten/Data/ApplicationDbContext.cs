@@ -17,6 +17,7 @@ namespace GinWhiskeyExperten.Data
         public DbSet<Flavor> Flavors { get; set; } = null!;
         public DbSet<Review> Reviews { get; set; } = null!;
         public DbSet<SpiritFlavor> SpiritFlavors { get; set; } = null!;
+        public DbSet<SpiritVote> SpiritVotes { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

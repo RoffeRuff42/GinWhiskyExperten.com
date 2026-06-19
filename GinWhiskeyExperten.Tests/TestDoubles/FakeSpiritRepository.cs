@@ -79,5 +79,16 @@ namespace GinWhiskeyExperten.Tests.TestDoubles
             spirit!.SpiritFlavors.Remove(existing);
             return Task.FromResult(true);
         }
+
+        public Task<bool> AddVoteAsync(int spiritId, int stars)
+        {
+            var spirit = _spirits.FirstOrDefault(s => s.Id == spiritId);
+            if (spirit == null) return Task.FromResult(false);
+
+            spirit.SpiritVotes.Add(new SpiritVote { SpiritId = spiritId, Stars = stars });
+            return Task.FromResult(true);
+        }
+
+        public Task<List<Spirit>> GetAllWithVotesAsync() => Task.FromResult(_spirits.ToList());
     }
 }
