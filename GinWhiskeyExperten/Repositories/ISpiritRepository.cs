@@ -9,6 +9,10 @@ namespace GinWhiskeyExperten.Repositories
         Task AddAsync(Spirit spirit);
         Task UpdateAsync(Spirit spirit);
         Task DeleteAsync(int id);
-        
+
+        Task<Spirit?> GetByIdWithFlavorsAsync(int id);
+        Task<List<Spirit>> GetAllWithFlavorsExceptAsync(int excludeId);
+        Task<bool> UpsertSpiritFlavorAsync(int spiritId, int flavorId, int intensity);
+        Task<bool> RemoveSpiritFlavorAsync(int spiritId, int flavorId);
     }
 }

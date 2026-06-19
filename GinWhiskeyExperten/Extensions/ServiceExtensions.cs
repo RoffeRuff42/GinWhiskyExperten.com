@@ -28,9 +28,19 @@ namespace GinWhiskeyExperten.Extensions
                 {
                     opt.PermitLimit = 10; // Max 10 requests..
                     opt.Window = TimeSpan.FromMinutes(1); //.. per minute
-                    opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst; // If the limit is exceeded, queue 
+                    opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst; // If the limit is exceeded, queue
                     opt.QueueLimit = 2; // Allow up to 2 queued requests
 
+                });
+
+                // Stricter policy for the login endpoint - a credential-stuffing/brute-force target,
+                // not covered well by the general-purpose 10/min policy above.
+                options.AddFixedWindowLimiter("AuthPolicy", opt =>
+                {
+                    opt.PermitLimit = 5; // Max 5 login attempts..
+                    opt.Window = TimeSpan.FromMinutes(1); //.. per minute
+                    opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                    opt.QueueLimit = 0; // No queueing - reject immediately past the limit
                 });
 
                 options.RejectionStatusCode = StatusCodes.Status429TooManyRequests; // Return 429 when rate limit is exceeded

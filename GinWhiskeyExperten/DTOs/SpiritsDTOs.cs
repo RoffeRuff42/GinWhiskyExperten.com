@@ -51,6 +51,12 @@ namespace GinWhiskeyExperten.DTOs
         int BrandId
     );
 
+    // For assigning a flavor profile entry (Flavor + Intensity) to a Spirit
+    public record AssignFlavorDto(
+        [Required] int FlavorId,
+        [Required, Range(1, 5)] int Intensity
+    );
+
     // For pagination response
     public record PagedResponse<T>(
         IEnumerable<T> Items,
