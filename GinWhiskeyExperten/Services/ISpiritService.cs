@@ -9,5 +9,9 @@ namespace GinWhiskeyExperten.Services
         Task<SpiritReadDto> CreateSpiritAsync(SpiritCreateDto createDto);
         Task<bool> UpdateSpiritAsync(int id, SpiritUpdateDto updateDto);
         Task<bool> DeleteSpiritAsync(int id);
+
+        Task<List<SpiritReadDto>> GetRecommendationsAsync(int spiritId, int count = 3);
+        Task<bool> AssignFlavorAsync(int spiritId, int flavorId, int intensity);
+        Task<bool> RemoveFlavorAsync(int spiritId, int flavorId);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using GinWhiskeyExperten.DTOs;
 using GinWhiskeyExperten.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
@@ -65,6 +66,7 @@ namespace GinWhiskeyExperten.Controllers
 
         // POST: api/spirits
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<SpiritReadDto>> CreateSpirit(SpiritCreateDto createDto)
         {
             var createdSpirit = await _spiritService.CreateSpiritAsync(createDto); // Create the spirit and get the created entity with its new ID
@@ -73,6 +75,7 @@ namespace GinWhiskeyExperten.Controllers
 
         // PUT: api/spirits/{id}
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateSpirit(int id, SpiritUpdateDto updateDto)
         {
             var success = await _spiritService.UpdateSpiritAsync(id, updateDto);
@@ -88,6 +91,7 @@ namespace GinWhiskeyExperten.Controllers
         // DELETE: api/spirits/{id}
         // REST Standard: Use 204 No Content on success
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteSpirit(int id)
         {
             var success = await _spiritService.DeleteSpiritAsync(id);
@@ -96,6 +100,40 @@ namespace GinWhiskeyExperten.Controllers
             {
                 return NotFound(new { Message = $"Delete failed. Spirit with ID {id} not found." });
             }
+
+            return NoContent();
+        }
+
+        // GET: api/spirits/5/recommendations - "Smart Match": top 3 spirits by flavor-profile similarity.
+        // Returns an empty list (not an error) if the spirit has no flavors assigned yet.
+        [HttpGet("{id}/recommendations")]
+        public async Task<ActionResult<List<SpiritReadDto>>> GetRecommendations(int id)
+        {
+            var spirit = await _spiritService.GetSpiritByIdAsync(id);
+            if (spirit == null) return NotFound(new { Message = $"Spirit {id} not found." });
+
+            var recommendations = await _spiritService.GetRecommendationsAsync(id);
+            return Ok(recommendations);
+        }
+
+        // PUT: api/spirits/5/flavors - assign or update a flavor's intensity on this spirit (upsert)
+        [HttpPut("{id}/flavors")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AssignFlavor(int id, AssignFlavorDto assignDto)
+        {
+            var success = await _spiritService.AssignFlavorAsync(id, assignDto.FlavorId, assignDto.Intensity);
+            if (!success) return NotFound(new { Message = $"Spirit {id} or Flavor {assignDto.FlavorId} not found." });
+
+            return NoContent();
+        }
+
+        // DELETE: api/spirits/5/flavors/3 - remove a flavor assignment from this spirit
+        [HttpDelete("{id}/flavors/{flavorId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RemoveFlavor(int id, int flavorId)
+        {
+            var success = await _spiritService.RemoveFlavorAsync(id, flavorId);
+            if (!success) return NotFound(new { Message = $"Spirit {id} has no flavor {flavorId} assigned." });
 
             return NoContent();
         }
