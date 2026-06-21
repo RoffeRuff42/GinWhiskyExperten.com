@@ -57,6 +57,22 @@ namespace GinWhiskeyExperten.DTOs
         [Required, Range(1, 5)] int Intensity
     );
 
+    // For casting an anonymous 1-5 star vote on a Spirit
+    public record CastVoteDto(
+        [Required, Range(1, 5)] int Stars
+    );
+
+    // For the GET /api/spirits/top ranking endpoint
+    public record SpiritRankingDto(
+        int Id,
+        string Name,
+        string Type,
+        decimal Abv,
+        string BrandName,
+        double AverageRating,
+        int VoteCount
+    );
+
     // For pagination response
     public record PagedResponse<T>(
         IEnumerable<T> Items,

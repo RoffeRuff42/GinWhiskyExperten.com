@@ -31,6 +31,7 @@ namespace GinWhiskeyExperten.Models
         public Brand Brand { get; set; } = null!; // null! = null-forgiving operator, tells the compiler that this will be set later and won't be null at runtime
         public List<SpiritFlavor> SpiritFlavors { get; set; } = new();
         public List<Review> Reviews { get; set; } = new();
+        public List<SpiritVote> SpiritVotes { get; set; } = new();
 
     }
 }

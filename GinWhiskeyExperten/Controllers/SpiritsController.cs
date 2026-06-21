@@ -33,8 +33,20 @@ namespace GinWhiskeyExperten.Controllers
             return Ok(response);
         }
 
+        // GET: api/spirits/top?count=50 - must be declared with a literal segment ahead of {id:int}
+        // below, and {id} must be constrained to :int, or a request for "top" would otherwise try
+        // to bind "top" to the int id parameter on GetSpirit instead of reaching this action.
+        [HttpGet("top")]
+        public async Task<ActionResult<List<SpiritRankingDto>>> GetTopRated([FromQuery] int count = 50)
+        {
+            if (count <= 0 || count > 100) count = 50;
+
+            var ranking = await _spiritService.GetTopRatedAsync(count);
+            return Ok(ranking);
+        }
+
         // GET: api/spirits/5
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<ActionResult<SpiritReadDto>> GetSpirit(int id, [FromServices] SystembolagetIntegrationService systemService)
         {
             var spirit = await _spiritService.GetSpiritByIdAsync(id);
@@ -134,6 +146,17 @@ namespace GinWhiskeyExperten.Controllers
         {
             var success = await _spiritService.RemoveFlavorAsync(id, flavorId);
             if (!success) return NotFound(new { Message = $"Spirit {id} has no flavor {flavorId} assigned." });
+
+            return NoContent();
+        }
+
+        // POST: api/spirits/5/votes - cast an anonymous 1-5 star vote. No auth, no dedup on the
+        // server (see SpiritVote model) - the frontend prevents repeat votes via localStorage.
+        [HttpPost("{id}/votes")]
+        public async Task<IActionResult> CastVote(int id, CastVoteDto voteDto)
+        {
+            var success = await _spiritService.CastVoteAsync(id, voteDto.Stars);
+            if (!success) return NotFound(new { Message = $"Spirit {id} not found." });
 
             return NoContent();
         }

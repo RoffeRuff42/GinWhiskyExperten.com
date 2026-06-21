@@ -13,6 +13,7 @@ namespace GinWhiskeyExperten.Services
         private readonly IFlavorRepository _flavorRepository;
         private readonly IMemoryCache _cache;
         private const string CacheKeyPrefix = "spirits_list"; // Prefix for cache keys to group related cache entries
+        private const string TopRatedCacheKeyPrefix = "spirits_top";
 
         // See CacheKeyTracking - static + keyed by the cache instance because SpiritService is
         // registered Scoped (one instance per request) while IMemoryCache is a singleton in
@@ -159,6 +160,44 @@ namespace GinWhiskeyExperten.Services
 
         public async Task<bool> RemoveFlavorAsync(int spiritId, int flavorId) =>
             await _repository.RemoveSpiritFlavorAsync(spiritId, flavorId);
+
+        public async Task<bool> CastVoteAsync(int spiritId, int stars)
+        {
+            var success = await _repository.AddVoteAsync(spiritId, stars);
+            if (success) ClearSpiritCache(); // a new vote changes the ranking
+            return success;
+        }
+
+        public async Task<List<SpiritRankingDto>> GetTopRatedAsync(int count = 50)
+        {
+            string cacheKey = $"{TopRatedCacheKeyPrefix}_{count}";
+
+            if (!_cache.TryGetValue(cacheKey, out List<SpiritRankingDto>? cached))
+            {
+                var spirits = await _repository.GetAllWithVotesAsync();
+
+                cached = spirits
+                    .Where(s => s.SpiritVotes.Count > 0) // exclude spirits with no votes yet, rather than showing a misleading 0/5
+                    .Select(s => new SpiritRankingDto(
+                        s.Id, s.Name, s.Type, s.Abv, s.Brand?.Name ?? "Unknown brand",
+                        s.SpiritVotes.Average(v => v.Stars),
+                        s.SpiritVotes.Count))
+                    .OrderByDescending(r => r.AverageRating)
+                    .ThenByDescending(r => r.VoteCount)
+                    .ThenBy(r => r.Id)
+                    .Take(count)
+                    .ToList();
+
+                var cacheOptions = new MemoryCacheEntryOptions()
+                    .SetAbsoluteExpiration(TimeSpan.FromMinutes(5))
+                    .SetSlidingExpiration(TimeSpan.FromMinutes(2));
+
+                _cache.Set(cacheKey, cached, cacheOptions);
+                CacheKeyTracking.Track(_trackedKeys, _cache, cacheKey);
+            }
+
+            return cached!;
+        }
 
         private static string BuildCacheKey(int page, int pageSize, string? type) =>
             $"{CacheKeyPrefix}_p{page}_s{pageSize}_t{type ?? "all"}";

@@ -6,10 +6,13 @@
 *.userosscache
 *.sln.docstates
 
-## User Secrets (Säkerhet!) ##
+## User Secrets (Sï¿½kerhet!) ##
 secrets.json
 appsettings.Development.json
 
 ## SQL Server ##
 *.mdf
 *.ldf
+
+## Claude Code local tooling (machine-specific paths) ##
+.claude/launch.json
